@@ -1,2 +1,4 @@
 target
 .vscode/.history
+venv
+pylucene-6.5.0-src.tar
