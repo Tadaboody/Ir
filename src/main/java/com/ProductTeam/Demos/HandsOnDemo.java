@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.ProductTeam;
+package com.ProductTeam.demos;
 
-import static com.ProductTeam.Utils.format;
+import static com.ProductTeam.demos.Utils.format;
 
 import java.io.File;
 import java.io.IOException;

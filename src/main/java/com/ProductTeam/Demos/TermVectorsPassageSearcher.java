@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.ProductTeam;
+package com.ProductTeam.demos;
 
-import static com.ProductTeam.Utils.*;
+import static com.ProductTeam.demos.Utils.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 
-import com.ProductTeam.Passage.Interval;
+import com.ProductTeam.demos.Passage.Interval;
 
 public class TermVectorsPassageSearcher implements PassageSearcher {
 

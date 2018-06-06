@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.ProductTeam;
+package com.ProductTeam.demos;
 
-import static com.ProductTeam.Utils.*;
+import static com.ProductTeam.demos.Utils.*;
 
 import java.util.List;
 
