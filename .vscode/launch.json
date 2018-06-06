@@ -6,6 +6,16 @@
     "configurations": [
         {
             "type": "java",
+            "name": "HandsOnDemo",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopOnEntry": false,
+            "mainClass": "com.ProductTeam.HandsOnDemo",
+            "args": ""
+        },
+        {
+            "type": "java",
             "name": "Debug (Launch)-App<InfoRet>",
             "request": "launch",
             "cwd": "${workspaceFolder}",
