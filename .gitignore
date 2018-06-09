@@ -5,3 +5,5 @@ pylucene-6.5.0-src.tar
 pylucene-6.5.0
 dataset/nfL6.json
 sample_answers.json
+.vscode/settings.json
+.vscode/.ropeproject
