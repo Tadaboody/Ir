@@ -1,5 +1,12 @@
 package com.ProductTeam;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.StringField;
+
 /**
  * Question
 {
@@ -19,7 +26,44 @@ public class Question {
     
     public String main_category;
     public String question;
-    public String[] nbbestanswers;
+    public String[] nbestanswers;
     public String answer;
     public int id;
+
+    public Question(String main_category, String question, String[] nbbestanswers, String answer, int id)
+    {
+        this.main_category = main_category;
+        this.question = question;
+        this.nbestanswers = nbbestanswers;
+        this.answer = answer;
+        this.id = id;
+    }
+
+    public QuestionResponse identityQuestionResponse()
+    {
+        List<Answer> answers = new ArrayList<Answer>();
+        for (String answer : nbestanswers)
+        {
+            answers.add(new Answer(answer, 1));
+        }
+        return new QuestionResponse(id, answers);
+    }
+
+    public Boolean isBestAnswer(String answer) {
+        return answer.equals(this.answer);
+    }
+
+    public List<Document> answerDocuments()
+    {
+        final List<Document> docList = new ArrayList<>();
+        for(String answer : nbestanswers)
+        {
+            final Document doc = new Document();
+            // doc.add(new StoredField("question id", id)); // stored fields are not indexed
+            doc.add(new StringField(Answer.BODY_FIELD, answer, Store.YES));
+            doc.add(new StringField("is_best_answer", isBestAnswer(answer).toString(), Store.YES));
+            docList.add(doc);
+        }
+        return docList;
+    }
 }

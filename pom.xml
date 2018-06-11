@@ -55,12 +55,19 @@
     <artifactId>guava</artifactId>
     <version>25.1-jre</version>
 </dependency>
+<!-- https://mvnrepository.com/artifact/org.apache.lucene/lucene-test-framework -->
+<dependency>
+    <groupId>org.apache.lucene</groupId>
+    <artifactId>lucene-test-framework</artifactId>
+    <version>7.3.1</version>
+    <scope>test</scope>
+</dependency>
 
 <!-- https://mvnrepository.com/artifact/org.apache.lucene/lucene-codecs -->
 <dependency>
     <groupId>org.apache.lucene</groupId>
     <artifactId>lucene-codecs</artifactId>
-    <version>4.0.0</version>
+    <version>7.3.1</version>
     <scope>test</scope>
 </dependency>
 <dependency>

@@ -17,6 +17,16 @@
         },
         {
             "type": "java",
+            "name": "PassageRetDemo",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopOnEntry": false,
+            "mainClass": "com.ProductTeam.demos.PassageSearchDemo",
+            "args": ""
+        },
+        {
+            "type": "java",
             "name": "HandsOnDemo",
             "request": "launch",
             "cwd": "${workspaceFolder}",
@@ -25,12 +35,5 @@
             "mainClass": "com.ProductTeam.HandsOnDemo",
             "args": ""
         },
-        {
-            "type": "java",
-            "name": "Debug (Attach)",
-            "request": "attach",
-            "hostName": "localhost",
-            "port": 0
-        }
     ]
 }
