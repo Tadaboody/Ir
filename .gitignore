@@ -7,3 +7,5 @@ dataset/nfL6.json
 sample_answers.json
 .vscode/settings.json
 .vscode/.ropeproject
+results.json
+.vscode/launch.test.json

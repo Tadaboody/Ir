@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field.Store;
-import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 
 /**
@@ -60,7 +59,7 @@ public class Question {
         for(String answer : nbestanswers)
         {
             final Document doc = new Document();
-            doc.add(new StoredField("question id", id)); // stored fields are not indexed
+            // doc.add(new StoredField("question id", id)); // stored fields are not indexed
             doc.add(new StringField(Answer.BODY_FIELD, answer, Store.YES));
             doc.add(new StringField("is_best_answer", isBestAnswer(answer).toString(), Store.YES));
             docList.add(doc);
