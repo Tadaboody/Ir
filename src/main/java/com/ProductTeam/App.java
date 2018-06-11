@@ -1,9 +1,11 @@
 package com.ProductTeam;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
@@ -20,20 +22,27 @@ import org.apache.lucene.store.RAMDirectory;
  * Hello world!
  *
  */
-public class App 
-{
+public class App {
 
-	public static final String TEST_QUESTION = "2311395	Whenever the batterys are low on somebody's remote, why do they just press the buttons even harder?";
+    public static final String TEST_QUESTION = "2311395	Whenever the batterys are low on somebody's remote, why do they just press the buttons even harder?";
 
-	public static void main( String[] args )throws Exception
-    {
-        String query_string = TEST_QUESTION;
-        try (Directory dir = newDirectory();
-                Analyzer analyzer = newAnalyzer()) {
+    public static void main(String[] args) throws Exception {
+
+        try (Directory dir = newDirectory(); Analyzer analyzer = newAnalyzer()) {
             // Index
             index(dir, analyzer);
-            QuestionResponse response = search(query_string, dir, analyzer);
-            Parser.write_answers("results.json", List.of(response));
+            List<QuestionResponse> responses = new ArrayList<>();
+            Iterable<String> readFile = readFile(args[0]);
+            for (String query_string : readFile) {
+                responses.add(search(query_string, dir, analyzer));
+            }
+            Parser.write_answers("results.json", responses);
+        }
+    }
+
+    private static Iterable<String> readFile(String path) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
+            return reader.lines().collect(Collectors.toList());
         }
     }
 
@@ -44,7 +53,7 @@ public class App
 
         final QueryParser parser = new QueryParser(Answer.BODY_FIELD, analyzer);
         try (DirectoryReader reader = DirectoryReader.open(dir)) {
-            final Query query = parser.parse(query_string);
+            final Query query = parser.parse(QueryParser.escape(query_string));
             final IndexSearcher searcher = new IndexSearcher(reader);
             final AnswerSearcher answerSearcher = new BestAnswerSearcher();
             final List<Answer> answers = answerSearcher.search(searcher, query);
@@ -53,8 +62,7 @@ public class App
         }
     }
 
-    private static void index(Directory dir, Analyzer analyzer)throws IOException
-    {
+    private static void index(Directory dir, Analyzer analyzer) throws IOException {
         List<Question> dataset = Parser.parse_dataset();
         try (IndexWriter writer = new BasicIndexWriter(dir, analyzer)) {
             for (final Question question : dataset) {

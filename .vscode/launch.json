@@ -13,7 +13,7 @@
             "stopOnEntry": false,
             "mainClass": "com.ProductTeam.App",
             "projectName": "InfoRet",
-            "args": ""
+            "args": "misc/exampleTestQuestions.txt"
         },
         {
             "type": "java",
