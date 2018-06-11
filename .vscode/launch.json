@@ -6,23 +6,23 @@
     "configurations": [
         {
             "type": "java",
-            "name": "HandsOnDemo",
-            "request": "launch",
-            "cwd": "${workspaceFolder}",
-            "console": "internalConsole",
-            "stopOnEntry": false,
-            "mainClass": "com.ProductTeam.HandsOnDemo",
-            "args": ""
-        },
-        {
-            "type": "java",
-            "name": "Debug (Launch)-App<InfoRet>",
+            "name": "Debug App",
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "console": "internalConsole",
             "stopOnEntry": false,
             "mainClass": "com.ProductTeam.App",
             "projectName": "InfoRet",
+            "args": ""
+        },
+        {
+            "type": "java",
+            "name": "HandsOnDemo",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopOnEntry": false,
+            "mainClass": "com.ProductTeam.HandsOnDemo",
             "args": ""
         },
         {
