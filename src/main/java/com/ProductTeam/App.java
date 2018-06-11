@@ -57,7 +57,7 @@ public class App {
             final IndexSearcher searcher = new IndexSearcher(reader);
             final AnswerSearcher answerSearcher = new BestAnswerSearcher();
             final List<Answer> answers = answerSearcher.search(searcher, query);
-            final QuestionResponse response = new QuestionResponse(question_id, answers);
+            final QuestionResponse response = new QuestionResponse(question_id, answers, query_string);
             return response;
         }
     }

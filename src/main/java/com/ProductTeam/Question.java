@@ -46,7 +46,7 @@ public class Question {
         {
             answers.add(new Answer(answer, 1));
         }
-        return new QuestionResponse(id, answers);
+        return new QuestionResponse(id, answers, question);
     }
 
     public Boolean isBestAnswer(String answer) {
