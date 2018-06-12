@@ -34,7 +34,7 @@ public class QuestionTest{
     @Test
     public void ParsesQuestion() throws IOException
     {
-        assertEquals(2020338, question.id);
+        assertEquals("2020338", question.id);
         assertEquals(First_question_best_answer, question.answer);
         assertArrayEquals(First_question_nbestanswers, question.nbestanswers);
     }

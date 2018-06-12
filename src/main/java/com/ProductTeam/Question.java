@@ -24,13 +24,13 @@ import org.apache.lucene.document.StringField;
  */
 public class Question {
     
-    public String main_category;
+	public String main_category;
     public String question;
     public String[] nbestanswers;
     public String answer;
-    public int id;
+    public String id;
 
-    public Question(String main_category, String question, String[] nbbestanswers, String answer, int id)
+    public Question(String main_category, String question, String[] nbbestanswers, String answer, String id)
     {
         this.main_category = main_category;
         this.question = question;
@@ -46,7 +46,7 @@ public class Question {
         {
             answers.add(new Answer(answer, 1));
         }
-        return new QuestionResponse(id, answers);
+        return new QuestionResponse(id, answers, question);
     }
 
     public Boolean isBestAnswer(String answer) {
@@ -61,7 +61,8 @@ public class Question {
             final Document doc = new Document();
             // doc.add(new StoredField("question id", id)); // stored fields are not indexed
             doc.add(new StringField(Answer.BODY_FIELD, answer, Store.YES));
-            doc.add(new StringField("is_best_answer", isBestAnswer(answer).toString(), Store.YES));
+            doc.add(new StringField(Answer.IS_BEST_ANSWER_FIELD, isBestAnswer(answer).toString(), Store.YES));
+            doc.add(new StringField(Answer.CATEGORY_FIELD, main_category, Store.NO));
             docList.add(doc);
         }
         return docList;

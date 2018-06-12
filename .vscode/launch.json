@@ -5,6 +5,24 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Evaluate results",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/misc/eval.py",
+            "console": "integratedTerminal",
+            "args": [
+                "dataset/nfL6.json",
+                "misc/exampleQuestions.txt",
+                "response.json"
+            ]
+        },
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}"
+        },
+        {
             "type": "java",
             "name": "Debug App",
             "request": "launch",
@@ -13,7 +31,7 @@
             "stopOnEntry": false,
             "mainClass": "com.ProductTeam.App",
             "projectName": "InfoRet",
-            "args": ""
+            "args": "misc/exampleTestQuestions.txt"
         },
         {
             "type": "java",
