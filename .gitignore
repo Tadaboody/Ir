@@ -9,3 +9,4 @@ sample_answers.json
 .vscode/.ropeproject
 results.json
 .vscode/launch.test.json
+perfect_results.json

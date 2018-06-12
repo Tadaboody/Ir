@@ -17,8 +17,8 @@ public class RegexHelper {
         return matcher.group(groupNum);
     }
 
-    public static int parse_question_id(String query_string) {
-        return Integer.parseInt(get_query_group(query_string, 1));
+    public static String parse_question_id(String query_string) {
+        return get_query_group(query_string, 1);
     }
 
     public static String parse_question_string(String query_string) {

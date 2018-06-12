@@ -48,7 +48,7 @@ public class App {
 
     private static QuestionResponse search(String query_string, Directory dir, Analyzer analyzer)
             throws IOException, ParseException {
-        int question_id = RegexHelper.parse_question_id(query_string);
+        String question_id = RegexHelper.parse_question_id(query_string);
         query_string = RegexHelper.parse_question_string(query_string);
 
         final QueryParser parser = new QueryParser(Answer.BODY_FIELD, analyzer);
