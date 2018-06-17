@@ -10,3 +10,8 @@ sample_answers.json
 results.json
 .vscode/launch.test.json
 perfect_results.json
+/.factorypath
+/product_team/__pycache__
+/.pytest_cache
+/.settings
+/tests/__pycache__

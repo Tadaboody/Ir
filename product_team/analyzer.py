@@ -3,11 +3,16 @@ from lazy import lazy
 import string
 from typing import List, Set
 from nltk.corpus import stopwords 
-from nltk.tokenize import tokenize
+import nltk
 from itertools import product
 
-stopwords = set(stopwords.words('english'))
-class StemmingTokenize:
+try:
+    stopwords = set(stopwords.words('english'))
+except LookupError:
+    nltk.download('stopwords')
+    stopwords = set(stopwords.words('english'))
+
+class EnglishAnalyzer:
     """ A tokenizer that removes stop words, puncuation and uses Stemming """
     DEFAULT_MAX_TOKEN_LENGTH = 255
 
@@ -19,7 +24,7 @@ class StemmingTokenize:
     def EnglishPosessiveFilter(tokens: List[str]) -> List[str]:
         def without_posessive(token: str) -> str:
             for combination in product({'\'', '\u2019', '\uFF07'}, {'s', 'S'}):
-                token = token.replace(''.join(*combination), '')
+                token = token.replace(''.join(combination), '')
             return token
         return [without_posessive(token) for token in tokens]
 
@@ -35,9 +40,9 @@ class StemmingTokenize:
         return {self.stemmer.stem(token) for token in tokens if token not in stemExclusionSet} + stemExclusionSet
 
     def apply_filters(self,tokens : List[str]) -> List[str]:
-        tokens = StemmingTokenize.EnglishPosessiveFilter(tokens)
+        tokens = EnglishAnalyzer.EnglishPosessiveFilter(tokens)
         tokens = [token.lower() for token in tokens] # LowerFilter
         tokens = [token for token in tokens if token not in string.punctuation]  # PunctuationFilter
-        tokens = StemmingTokenize.StopFilter(tokens)
+        tokens = EnglishAnalyzer.StopFilter(tokens)
         tokens = list(self.StemmerFilter(tokens))
         return tokens
