@@ -1,2 +1,2 @@
-from .index import Index, Question
 from .analyzer import EnglishAnalyzer
+from .index import Index, Question, load_index
