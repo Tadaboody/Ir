@@ -61,8 +61,8 @@ public class Question {
             final Document doc = new Document();
             // doc.add(new StoredField("question id", id)); // stored fields are not indexed
             doc.add(new StringField(Answer.BODY_FIELD, answer, Store.YES));
-            doc.add(new StringField(Answer.IS_BEST_ANSWER_FIELD, isBestAnswer(answer).toString(), Store.YES));
-            doc.add(new StringField(Answer.CATEGORY_FIELD, main_category, Store.NO));
+            // doc.add(new StringField(Answer.IS_BEST_ANSWER_FIELD, isBestAnswer(answer).toString(), Store.YES));
+            // doc.add(new StringField(Answer.CATEGORY_FIELD, main_category, Store.NO));
             docList.add(doc);
         }
         return docList;
