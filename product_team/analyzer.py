@@ -1,7 +1,7 @@
 from nltk import PorterStemmer
 from lazy import lazy
 import string
-from typing import List, Set
+from typing import List, Set, Iterable
 from nltk.corpus import stopwords 
 import nltk
 from itertools import product
@@ -22,10 +22,15 @@ class EnglishAnalyzer:
     
     @staticmethod
     def EnglishPosessiveFilter(tokens: List[str]) -> List[str]:
+        """" Removes possesives in english (mike's -> mike)"""
+
         def without_posessive(token: str) -> str:
+            """Possesive filter for a single token"""
             for combination in product({'\'', '\u2019', '\uFF07'}, {'s', 'S'}):
-                token = token.replace(''.join(combination), '')
+                posessive_str = ''.join(combination)
+                token = token.replace(posessive_str, '')
             return token
+
         return [without_posessive(token) for token in tokens]
 
     @staticmethod
@@ -37,7 +42,12 @@ class EnglishAnalyzer:
         return self.apply_filters(tokens)
     
     def StemmerFilter(self, tokens, stemExclusionSet=set()) -> Set[str]:
-        return {self.stemmer.stem(token) for token in tokens if token not in stemExclusionSet} + stemExclusionSet
+        return {self.stemmer.stem(token) for token in tokens if token not in stemExclusionSet} | stemExclusionSet
+    
+    def PunctuationFilter(self,tokens : Iterable[str]) -> Iterable[str]:
+        def without_punctuation(token :str) -> str:
+            return [char for char in token if char not in string.punctuation]
+        return [without_punctuation(token) for token in tokens]
 
     def apply_filters(self,tokens : List[str]) -> List[str]:
         tokens = EnglishAnalyzer.EnglishPosessiveFilter(tokens)
