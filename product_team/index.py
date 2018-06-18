@@ -1,81 +1,113 @@
 """ Module for basic searcher classes"""
+import random
 import json
+import pickle
 from collections import namedtuple
-from typing import Iterator
-
+from typing import Iterator, List, Tuple
+import numpy as np
 from gensim.corpora import Dictionary
 from gensim.models import TfidfModel, Word2Vec
 from gensim.similarities import SparseMatrixSimilarity
-from lazy import lazy
 from tqdm import tqdm
+from sklearn.model_selection import train_test_split
+from itertools import islice
 
 from product_team import EnglishAnalyzer
 from product_team.utils import memorize
 
-Question = namedtuple(
-    'Question', ['id','question', 'nbestanswers', 'answer', 'main_category'])
-Answer = namedtuple('Answer',['id','answers'])
+WORD2VEC_SIZE = 100
+
+
+class Document:
+    def __init__(self, question, best_answer, nbest_answers, analyzer: EnglishAnalyzer):
+        self.question = question
+        self.best_answer = best_answer
+        self.nbest_answers = [
+            answer for answer in nbest_answers if answer != best_answer]
+        self.tokenize(analyzer)
+
+    def tokenize(self, analyzer: EnglishAnalyzer):
+        self.tokenized_question = analyzer.tokenize(self.question)
+        self.tokenized_best_answer = analyzer.tokenize(self.best_answer)
+        self.tokenized_nbest_answers = [analyzer.tokenize(answer)
+                                        for answer in self.nbest_answers]
+        self.tokenized_nbest_answers = [
+            token for token in self.tokenized_nbest_answers if token is not None]
+
+    @property
+    def tokenized_fields(self):
+        yield self.tokenized_question
+        if self.tokenized_best_answer:
+            yield self.tokenized_best_answer
+        for answer in self.tokenized_nbest_answers:
+            yield answer
 
 
 class Index:
-    """ Base class for an searcher of questions"""
+    class Corpus_iterator:  # Word2Vec receives an iterator
+        def __init__(self, index):
+            self.index = index
 
-    def __init__(self, path: str):
-        self.documents = dict()  # List[Question]
-        self.indexed_documents = list()
-        self.raw_answers = list()
-        self.index_file(path)
-    
-    @lazy
-    def analyzer(self):
-        return EnglishAnalyzer()
+        def __iter__(self):
+            for sentance in self.index.gen_corpus():
+                yield sentance
 
-    def index_file(self, path: str): # -> Index
-        """ Initialization method for creating an searcher from a json"""
-        CACHE_PATH = path + 'analyzed_answers.json'
+    def gen_corpus(self):
+        for doc in self.doclist:
+            for sentance in doc.tokenized_fields:
+                yield sentance
+
+    def __init__(self, dataset_path="dataset/nfL6.json", Word2Vec_path="word2vec", doclist_path="doclist.p"):
+        self.analyzer = EnglishAnalyzer()
         try:
-            with open(CACHE_PATH) as fp:
-                self.indexed_documents, self.raw_answers = json.load(fp)
+            with open(doclist_path, 'rb') as fp:
+                self.doclist = pickle.load(fp)
         except FileNotFoundError:
-            with open(path) as fp:
-                question_list = json.load(fp)
-            for question in tqdm(question_list):
-                self.add_doc(Question(**question))
-            with open(CACHE_PATH,'w') as fp:
-                json.dump([self.indexed_documents, self.raw_answers], fp)
-        self.fit()
+            with open(dataset_path) as fp:
+                dataset = json.load(fp)
+                self.doclist = [
+                    Document(data['question'], data['answer'],
+                             data['nbestanswers'], self.analyzer)
+                    for data in tqdm(dataset)]
+            with open(doclist_path, 'wb') as fp:
+                pickle.dump(self.doclist, fp)
 
-    def add_doc(self, question: Question):
-        """ Indexes a single question """
-        self.documents[question.id] = question
-        for answer in question.nbestanswers:
-            self.indexed_documents.append(self.analyzer.tokenize(answer))
-            self.raw_answers.append(answer)
+        self.doclist = [
+            doc for doc in self.doclist if doc.tokenized_question is not None]
+        try:
+            self.model = Word2Vec.load(Word2Vec_path)
+        except FileNotFoundError:
+            self.model = Word2Vec(
+                Index.Corpus_iterator(self), size=WORD2VEC_SIZE)
+            self.model.save(Word2Vec_path)
+        self.doc_train, self.doc_test = train_test_split(
+            self.doclist, test_size=0.2)
 
-    def fit(self):
-        """ Generate the searcher and its model, has to be called before vectorize and search"""
-        dataset = list(self.all_answers)
-        dct = Dictionary(dataset)
-        self.corpus = [dct.doc2bow(line) for line in dataset]
-        self.model = TfidfModel(self.corpus)
-    
-    def vectorize(self, doc: str):
-        return self.model[doc]
-    
-    @lazy
-    def searcher(self):
-        return SparseMatrixSimilarity(self.vectorize(self.corpus))
+    def process_for_train(self, text: str):
+        tokens = self.analyzer.tokenize(text)
+        return self.model[tokens]
 
-    def search(self, doc, nbest=5):
-        top_docs_indicies = sorted(
-            self.searcher[self.vectorize(doc)], key=lambda vec: vec[1])
-        top_docs_indicies = list(top_docs_indicies)[:nbest]
-        top_docs_indicies = [top_doc[0] for top_doc in top_docs_indicies]
-        return [self.raw_answers[index] for index in top_docs_indicies]
+    def generate_batch(self, batch_size):
+        def random_answer():
+            random_doc = random.choice(self.doc_train)  # Type:Document
+            return random.choice(random_doc.nbestanswers + random_doc.answer)
 
-    @property
-    def all_answers(self) -> Iterator[str]:
-        return self.indexed_documents
+        def doc_iterator():
+            for doc in self.doc_train:
+                for answer in doc.tokenized_nbest_answers + doc.tokenized_best_answer:
+                    yield self.model[answer], self.model[doc.tokenized_question], self.model[random_answer()]
+
+        generator = doc_iterator()
+        while True:
+            ret = list(islice(generator, 30))
+            if ret:
+                yield ret
+            else:
+                return
+
+    def search(self, query: str):
+        ...
+
 
 def load_index():
-    return Index("dataset/nfL6.json")
+    return Index()

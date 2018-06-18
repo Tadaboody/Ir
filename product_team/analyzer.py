@@ -39,9 +39,12 @@ class EnglishAnalyzer:
         return [token for token in tokens if token not in stopwords]
 
     def tokenize(self, text: str) -> List[str]:
+        if not isinstance(text, str):
+            return text
         tokens = text.split()
-        if len(tokens) > 1:  # filter one word answers
-            return self.apply_filters(tokens)
+        tokens = self.apply_filters(tokens)
+        if len(tokens) > 0:  # filter one word answers
+            return tokens
         else:
             return None
 
@@ -50,14 +53,15 @@ class EnglishAnalyzer:
 
     def PunctuationFilter(self, tokens: Iterable[str]) -> Iterable[str]:
         def without_punctuation(token: str) -> str:
-            return [char for char in token if char not in string.punctuation]
+            return ''.join([char for char in token if char not in string.punctuation])
         return [without_punctuation(token) for token in tokens]
 
     def apply_filters(self, tokens: List[str]) -> List[str]:
         tokens = EnglishAnalyzer.EnglishPosessiveFilter(tokens)
         tokens = [token.lower() for token in tokens]  # LowerFilter
         # PunctuationFilter
-        tokens = [token for token in tokens if token not in string.punctuation]
+        tokens = self.PunctuationFilter(tokens)
         tokens = EnglishAnalyzer.StopFilter(tokens)
         tokens = list(self.StemmerFilter(tokens))
+        tokens = [token for token in tokens if token != '']
         return tokens
