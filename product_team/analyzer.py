@@ -2,7 +2,7 @@ from nltk import PorterStemmer
 from lazy import lazy
 import string
 from typing import List, Set, Iterable
-from nltk.corpus import stopwords 
+from nltk.corpus import stopwords
 import nltk
 from itertools import product
 
@@ -12,6 +12,7 @@ except LookupError:
     nltk.download('stopwords')
     stopwords = set(stopwords.words('english'))
 
+
 class EnglishAnalyzer:
     """ A tokenizer that removes stop words, puncuation and uses Stemming """
     DEFAULT_MAX_TOKEN_LENGTH = 255
@@ -19,7 +20,7 @@ class EnglishAnalyzer:
     @lazy
     def stemmer(self):
         return PorterStemmer()
-    
+
     @staticmethod
     def EnglishPosessiveFilter(tokens: List[str]) -> List[str]:
         """" Removes possesives in english (mike's -> mike)"""
@@ -34,25 +35,29 @@ class EnglishAnalyzer:
         return [without_posessive(token) for token in tokens]
 
     @staticmethod
-    def StopFilter(tokens,stopwords=stopwords):
+    def StopFilter(tokens, stopwords=stopwords):
         return [token for token in tokens if token not in stopwords]
 
-    def tokenize(self, text : str) -> List[str]:
+    def tokenize(self, text: str) -> List[str]:
         tokens = text.split()
-        return self.apply_filters(tokens)
-    
+        if len(tokens) > 1:  # filter one word answers
+            return self.apply_filters(tokens)
+        else:
+            return None
+
     def StemmerFilter(self, tokens, stemExclusionSet=set()) -> Set[str]:
         return {self.stemmer.stem(token) for token in tokens if token not in stemExclusionSet} | stemExclusionSet
-    
-    def PunctuationFilter(self,tokens : Iterable[str]) -> Iterable[str]:
-        def without_punctuation(token :str) -> str:
+
+    def PunctuationFilter(self, tokens: Iterable[str]) -> Iterable[str]:
+        def without_punctuation(token: str) -> str:
             return [char for char in token if char not in string.punctuation]
         return [without_punctuation(token) for token in tokens]
 
-    def apply_filters(self,tokens : List[str]) -> List[str]:
+    def apply_filters(self, tokens: List[str]) -> List[str]:
         tokens = EnglishAnalyzer.EnglishPosessiveFilter(tokens)
-        tokens = [token.lower() for token in tokens] # LowerFilter
-        tokens = [token for token in tokens if token not in string.punctuation]  # PunctuationFilter
+        tokens = [token.lower() for token in tokens]  # LowerFilter
+        # PunctuationFilter
+        tokens = [token for token in tokens if token not in string.punctuation]
         tokens = EnglishAnalyzer.StopFilter(tokens)
         tokens = list(self.StemmerFilter(tokens))
         return tokens
