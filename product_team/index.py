@@ -1,16 +1,18 @@
 """ Module for basic searcher classes"""
-import random
 import json
 import pickle
+import random
 from collections import namedtuple
+from itertools import islice
 from typing import Iterator, List, Tuple
+
 import numpy as np
 from gensim.corpora import Dictionary
 from gensim.models import TfidfModel, Word2Vec
 from gensim.similarities import SparseMatrixSimilarity
-from tqdm import tqdm
+from lazy import lazy
 from sklearn.model_selection import train_test_split
-from itertools import islice
+from tqdm import tqdm
 
 from product_team import EnglishAnalyzer
 from product_team.utils import memorize
@@ -49,13 +51,17 @@ class Index:
             self.index = index
 
         def __iter__(self):
-            for sentance in self.index.gen_corpus():
-                yield sentance
+            for sentence in self.index.gen_corpus():
+                yield sentence
 
     def gen_corpus(self):
         for doc in self.doclist:
-            for sentance in doc.tokenized_fields:
-                yield sentance
+            for sentence in doc.tokenized_fields:
+                yield sentence
+    
+    @lazy
+    def max_sentence_length(self):
+        return len(max(self.Corpus_iterator(self), key=lambda sent: len(sent)))
 
     def __init__(self, dataset_path="dataset/nfL6.json", Word2Vec_path="word2vec", doclist_path="doclist.p"):
         self.analyzer = EnglishAnalyzer()
@@ -99,9 +105,9 @@ class Index:
 
         generator = doc_iterator()
         while True:
-            ret = list(islice(generator, 30))
+            ret = list(zip(*islice(generator, 30)))
             if ret:
-                yield ret
+                yield np.array(ret)
             else:
                 return
 

@@ -37,14 +37,14 @@ def test_punctuation_filter(analyzer: EnglishAnalyzer):
 
 
 def test_no_tokens(analyzer: EnglishAnalyzer):
-    sentance = "is'!"
-    token = analyzer.tokenize(sentance)
+    sentence = "is'!"
+    token = analyzer.tokenize(sentence)
     assert token is None
 
 
 def test_all_filters(analyzer: EnglishAnalyzer):
-    sentance = "iran!? no way. ' the place is not iran's but israel's!"
-    tokens = analyzer.tokenize(sentance)
+    sentence = "iran!? no way. ' the place is not iran's but israel's!"
+    tokens = analyzer.tokenize(sentence)
     for token in tokens:
         assert_punct_less(token)
         assert token not in stopwords
@@ -53,6 +53,6 @@ def test_all_filters(analyzer: EnglishAnalyzer):
 
 
 def test_repeat(analyzer: EnglishAnalyzer):
-    sentance = "what is the usa?"
-    assert analyzer.tokenize(sentance) == analyzer.tokenize(
-        analyzer.tokenize(sentance))
+    sentence = "what is the usa?"
+    assert analyzer.tokenize(sentence) == analyzer.tokenize(
+        analyzer.tokenize(sentence))
