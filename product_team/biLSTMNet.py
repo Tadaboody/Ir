@@ -5,6 +5,12 @@ from tensorflow.contrib import rnn
 def cosine_similarity(x, y, axis=0, **kwargs):
     return tf.subtract(tf.constant(1.0), tf.losses.cosine_distance(x, y, axis, **kwargs))
 
+def dynamic_unstack(placeholder): # https://stackoverflow.com/a/46631356
+    tensor = tf.placeholder(tf.float32,shape=(None,10))
+    partitions = tf.range(max_batch_size)
+    num_partitions = max_batch_size
+    partitioned = tf.dynamic_partition(tensor, partitions, num_partitions, name='dynamic_unstack')
+
 
 def model(word2vec_size):
     timesteps = None  # Answers are in a dynamic length
