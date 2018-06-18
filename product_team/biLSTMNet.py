@@ -54,8 +54,9 @@ def generate_batch(batch_size):
     yield None*3
 
 
-if __name__ == '__main__':
-    word2vec_size = 100
+from product_team import WORD2VEC_SIZE
+def train():
+    word2vec_size = WORD2VEC_SIZE
     EPOCH_AMOUNT = 20
     BATCH_SIZE = 30
     answer_placeholder, question_placeholder, rand_answer_placeholder, answer_outputs, loss = model(
@@ -67,3 +68,5 @@ if __name__ == '__main__':
             for answer_batch, question_batch, random_answer_batch in generate_batch(BATCH_SIZE):
                 sess.run(optimizer, feed_dict={
                          answer_placeholder: answer_batch, question_placeholder: question_batch, rand_answer_placeholder: random_answer_batch})
+                print("batch!")
+            print("epoch!")

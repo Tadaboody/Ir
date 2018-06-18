@@ -27,6 +27,9 @@ def question():
 #     ret = Index('/')
 #     ret.add_doc(question)
 #     return ret
+def test_word2vec_vocab(index : Index):
+    for sentance in index.Corpus_iterator(index):
+        assert index.model[sentance].shape[1] == 100
 
 def test_batches(index : Index):
     batch_size = 30

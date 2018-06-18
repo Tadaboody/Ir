@@ -78,7 +78,7 @@ class Index:
             self.model = Word2Vec.load(Word2Vec_path)
         except FileNotFoundError:
             self.model = Word2Vec(
-                Index.Corpus_iterator(self), size=WORD2VEC_SIZE)
+                Index.Corpus_iterator(self), size=WORD2VEC_SIZE, min_count=1)
             self.model.save(Word2Vec_path)
         self.doc_train, self.doc_test = train_test_split(
             self.doclist, test_size=0.2)
@@ -90,7 +90,7 @@ class Index:
     def generate_batch(self, batch_size):
         def random_answer():
             random_doc = random.choice(self.doc_train)  # Type:Document
-            return random.choice(random_doc.nbestanswers + random_doc.answer)
+            return random.choice(random_doc.tokenized_nbest_answers + random_doc.tokenized_best_answer)
 
         def doc_iterator():
             for doc in self.doc_train:
