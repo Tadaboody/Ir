@@ -2,7 +2,7 @@ import json
 
 import click
 
-from product_team import load_index,train
+from product_team import load_index, train, Searcher
 
 
 @click.group()
@@ -15,18 +15,18 @@ def train_cmd(restore):
     train(restore)
 
 
-
-@cli.command
+@cli.command("search")
 @click.argument("queries_path")
 def search(queries_path: str):
     index = load_index()
+    searcher = Searcher(index)
 
     def gen_results():
         with open(queries_path) as opened_file:
             query = opened_file.readline()
         question_id = query.split()[0]
         question = query.split()[1:]
-        yield {'id': question_id, 'answers': index.search(question)}
+        yield {'id': question_id, 'answers': searcher.search(question, n=5)}
 
     answers = list(gen_results())
     with open('results.json', 'w') as opened_file:

@@ -25,28 +25,23 @@ def index():
 @pytest.fixture
 def question():
     return test_question['question']
-# @pytest.fixture
-# def index(question):
-#     ret = Index('/')
-#     ret.add_doc(question)
-#     return ret
 
 
 def test_batches(index: Index):
     batch_size = index.test_size//30
-    for i, batch_triple in enumerate(index.generate_batch(batch_size)):
+    for batch_triple in index.generate_batch(batch_size):
         assert len(batch_triple) == 3
         assert all(len(batch) <= batch_size for batch in batch_triple)
         assert all([len(batch.shape) == 3 for batch in batch_triple])
         assert all(batch.dtype == np.float for batch in batch_triple)
+
 
 def test_word2vec_vocab(index: Index):
     for sentence in index.Corpus_iterator(index):
         assert index.model[sentence].shape[1] == 100
 
 
-
-def test_batches_end(index :Index):
+def test_batches_end(index: Index):
     num_batches = 30
     batch_size = len(index.doclist)//num_batches
     gen = iter(index.generate_batch(batch_size))

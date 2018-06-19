@@ -43,6 +43,7 @@ def model(word2vec_size, max_sentence_length):
             outputs = tf.layers.dense(outputs, layer_size)
             outputs = tf.layers.average_pooling1d(
                 outputs, pool_size=pooling_size, strides=strides)
+            outputs = tf.nn.l2_normalize(outputs, axis=-1)
             return placeholder, outputs
 
     answer_placeholder, answer_outputs = pass_through_model()
@@ -77,8 +78,10 @@ def generate_batch(batch_size):
     return index.generate_batch(batch_size)
 
 
-MODEL_PATH = join(SAVE_DIR,'bilstmnet.ckpt')
-def train(restore = False):
+MODEL_PATH = join(SAVE_DIR, 'bilstmnet.ckpt')
+
+
+def train(restore=False):
     word2vec_size = WORD2VEC_SIZE
     EPOCH_AMOUNT = 20
     BATCH_SIZE = index.test_size//80
@@ -100,12 +103,13 @@ def train(restore = False):
             print(f"epoch {epoch_i} done")
             saver.save(sess, MODEL_PATH)
 
-def run(vector :np.ndarray):
+
+def run(vector: np.ndarray):
     word2vec_size = WORD2VEC_SIZE
     max_sentence_length = index.normalize_vector_length
     answer_placeholder, question_placeholder, rand_answer_placeholder, question_outputs, loss_op = model(
         word2vec_size, max_sentence_length)
     saver = tf.train.Saver()
     with tf.Session() as sess:
-        saver.restore(sess,MODEL_PATH)
+        saver.restore(sess, MODEL_PATH)
         return sess.run(question_outputs, feed_dict={question_placeholder: [vector]})[0]

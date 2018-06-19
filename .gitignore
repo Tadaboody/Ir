@@ -16,3 +16,4 @@ __pycache__
 /.settings
 word2vec*
 *.p
+saved_models/*

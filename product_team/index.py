@@ -37,7 +37,7 @@ class Document:
         self.tokenized_nbest_answers = [analyzer.tokenize(answer)
                                         for answer in self.nbest_answers]
         self.tokenized_nbest_answers = [
-            token for token in self.tokenized_nbest_answers if token is not None]
+            (i, token) for i, token in enumerate(self.tokenized_nbest_answers) if token is not None]
 
     @property
     def tokenized_fields(self):
@@ -48,9 +48,9 @@ class Document:
     def tokenized_answers(self):
         if self.tokenized_best_answer:
             yield self.tokenized_best_answer
-        for answer in self.tokenized_nbest_answers:
+        for _, answer in self.tokenized_nbest_answers:
             yield answer
-    
+
     # @property
     # def answer_pairs(self) -> Tuple(str,List[str]):
     #     if self.tokenized_best_answer:
@@ -104,21 +104,20 @@ class Index:
     @lazy
     def normalize_vector_length(self):
         return self.average_sentance_length()
-    
+
     @lazy
     def sentance_length_array(self):
         return [len(sentance) for sentance in self.Corpus_iterator(self)]
 
     def median_vector_length(self):
         return median_high(self.sentance_length_array)
-    
+
     def average_sentance_length(self):
         return floor(mean(self.sentance_length_array))
-    
+
     @lazy
     def test_size(self):
         return sum(len(list(doc.tokenized_answers)) for doc in self.doc_test)
-
 
     def process_for_train(self, text: str):
         tokens = self.analyzer.tokenize(text)
@@ -143,9 +142,6 @@ class Index:
         for _ in range(self.test_size//batch_size):
             ret = list(zip(*islice(generator, batch_size)))
             yield np.array(ret)
-
-    def search(self, query: str):
-        ...
 
 
 def load_index():
