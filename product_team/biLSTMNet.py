@@ -16,7 +16,7 @@ def model(word2vec_size, max_sentence_length):
     num_hidden_layers = 5
     pooling_size = 3
     strides = [1]
-    M = 2.0
+    M = 3.0
 
     def lstm(layer_size, num_layers):
         return [rnn.BasicLSTMCell(num_units=layer_size, activation=tf.tanh) for _ in range(num_layers)]
@@ -32,6 +32,7 @@ def model(word2vec_size, max_sentence_length):
         outputs, _, _ = rnn.stack_bidirectional_dynamic_rnn(
             cells_fw=lstm_fw_cell, cells_bw=lstm_bw_cell, inputs=placeholder_through_time,
             dtype=tf.float32)
+        outputs = tf.layers.dense(outputs, layer_size)
         outputs = tf.layers.average_pooling1d(
             outputs, pool_size=pooling_size, strides=strides)
         return placeholder, outputs
@@ -46,9 +47,10 @@ def model(word2vec_size, max_sentence_length):
 def model_loss(M, answer_outputs, question_outputs, rand_answer_outputs):
     loss = tf.subtract(tf.constant(M), cosine_similarity(
         answer_outputs, question_outputs))
+    print(answer_outputs, question_outputs)
     loss = tf.add(loss, cosine_similarity(
         question_outputs, rand_answer_outputs))
-    loss = tf.nn.relu(loss)
+    loss = tf.maximum(0.0, loss)
     return loss
 
 
@@ -65,16 +67,17 @@ def generate_batch(batch_size):
 def train():
     word2vec_size = WORD2VEC_SIZE
     EPOCH_AMOUNT = 20
-    BATCH_SIZE = 30
-    max_sentence_length = index.max_sentence_length
-    answer_placeholder, question_placeholder, rand_answer_placeholder, answer_outputs, loss = model(
+    BATCH_SIZE = 300
+    max_sentence_length = index.normalize_vector_length
+    answer_placeholder, question_placeholder, rand_answer_placeholder, answer_outputs, loss_op = model(
         word2vec_size, max_sentence_length)
-    optimizer = tf.train.AdamOptimizer().minimize(loss)
+    optimizer = tf.train.AdamOptimizer(
+        learning_rate=0.001).minimize(loss_op)
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         for epoch_i in range(EPOCH_AMOUNT):
             for answer_batch, question_batch, random_answer_batch in generate_batch(BATCH_SIZE):
-                sess.run(optimizer, feed_dict={
-                         answer_placeholder: answer_batch, question_placeholder: question_batch, rand_answer_placeholder: random_answer_batch})
-                print("batch!")
-            print("epoch!")
+                _, loss_val = sess.run([optimizer, loss_op], feed_dict={
+                    answer_placeholder: answer_batch, question_placeholder: question_batch, rand_answer_placeholder: random_answer_batch})
+                print(f"batch! loss={loss_val}")
+            print(f"epoch {epoch_i} done")

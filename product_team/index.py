@@ -13,7 +13,8 @@ from gensim.similarities import SparseMatrixSimilarity
 from lazy import lazy
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
-
+from statistics import median_high, mean
+from math import floor
 from product_team import EnglishAnalyzer
 from product_team.utils import memorize
 
@@ -39,6 +40,10 @@ class Document:
     @property
     def tokenized_fields(self):
         yield self.tokenized_question
+        yield from self.tokenized_answers
+
+    @property
+    def tokenized_answers(self):
         if self.tokenized_best_answer:
             yield self.tokenized_best_answer
         for answer in self.tokenized_nbest_answers:
@@ -51,17 +56,15 @@ class Index:
             self.index = index
 
         def __iter__(self):
-            for sentence in self.index.gen_corpus():
-                yield sentence
+            yield from self.index.gen_corpus()
 
     def gen_corpus(self):
         for doc in self.doclist:
             for sentence in doc.tokenized_fields:
                 yield sentence
-    
-    @lazy
+
     def max_sentence_length(self):
-        return len(max(self.Corpus_iterator(self), key=lambda sent: len(sent)))
+        return max(self.sentance_length_array)
 
     def __init__(self, dataset_path="dataset/nfL6.json", Word2Vec_path="word2vec", doclist_path="doclist.p"):
         self.analyzer = EnglishAnalyzer()
@@ -89,23 +92,43 @@ class Index:
         self.doc_train, self.doc_test = train_test_split(
             self.doclist, test_size=0.2)
 
+    @lazy
+    def normalize_vector_length(self):
+        return self.average_sentance_length()
+    
+    @lazy
+    def sentance_length_array(self):
+        return [len(sentance) for sentance in self.Corpus_iterator(self)]
+
+    def median_vector_length(self):
+        return median_high(self.sentance_length_array)
+    
+    def average_sentance_length(self):
+        return floor(mean(self.sentance_length_array))
+
+
     def process_for_train(self, text: str):
         tokens = self.analyzer.tokenize(text)
-        return self.model[tokens]
+        vector = self.model[tokens]
+        if len(vector) < self.normalize_vector_length:
+            vector = np.append(vector, [np.zeros(100)
+                                        for _ in range(self.normalize_vector_length - len(vector))], axis=0)
+        vector = vector[:self.normalize_vector_length]
+        return vector
 
     def generate_batch(self, batch_size):
         def random_answer():
-            random_doc = random.choice(self.doc_train)  # Type:Document
-            return random.choice(random_doc.tokenized_nbest_answers + random_doc.tokenized_best_answer)
+            random_doc = random.choice(self.doc_train)  # type:Document
+            return random.choice(list(random_doc.tokenized_answers))
 
         def doc_iterator():
             for doc in self.doc_train:
-                for answer in doc.tokenized_nbest_answers + doc.tokenized_best_answer:
-                    yield self.model[answer], self.model[doc.tokenized_question], self.model[random_answer()]
+                for answer in doc.tokenized_answers:
+                    yield self.process_for_train(answer), self.process_for_train(doc.tokenized_question), self.process_for_train(random_answer())
 
         generator = doc_iterator()
         while True:
-            ret = list(zip(*islice(generator, 30)))
+            ret = list(zip(*islice(generator, batch_size)))
             if ret:
                 yield np.array(ret)
             else:

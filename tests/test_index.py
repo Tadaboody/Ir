@@ -42,8 +42,8 @@ def test_batches(index: Index):
     for _, batch_triple in zip(range(3), index.generate_batch(batch_size)):
         assert len(batch_triple) == 3
         assert all(len(batch) <= batch_size for batch in batch_triple)
-        # assert all(batch.shape[1] == 100 for batch in batch_triple)
-        # assert all(batch.dtype == np.float for batch in batch_triple)
+        assert all([len(batch.shape) == 3 for batch in batch_triple])
+        assert all(batch.dtype == np.float for batch in batch_triple)
 
 
 def test_max_sentence_len(index: Index):
@@ -52,5 +52,5 @@ def test_max_sentence_len(index: Index):
 
 
 def test_search(index: Index, question):
-    results = index.search(question.question, nbest=5)
+    results = index.search(question, nbest=5)
     assert(len(results) <= 5)
