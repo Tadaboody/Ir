@@ -10,8 +10,9 @@ def cli():
     pass
 
 @cli.command("train")
-def train_cmd():
-    train()
+@click.option('--restore/--dont_restore', default=True)
+def train_cmd(restore):
+    train(restore)
 
 
 

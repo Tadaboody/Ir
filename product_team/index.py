@@ -17,6 +17,8 @@ from statistics import median_high, mean
 from math import floor
 from product_team import EnglishAnalyzer
 from product_team.utils import memorize
+from os.path import join
+from product_team import SAVE_DIR
 
 WORD2VEC_SIZE = 100
 
@@ -48,6 +50,13 @@ class Document:
             yield self.tokenized_best_answer
         for answer in self.tokenized_nbest_answers:
             yield answer
+    
+    # @property
+    # def answer_pairs(self) -> Tuple(str,List[str]):
+    #     if self.tokenized_best_answer:
+    #         yield self.best_answer, self.tokenized_best_answer
+    #     for answer in self.nbest_answers:
+    #         tokenized_answer = global_analay.tokenize(answer)
 
 
 class Index:
@@ -66,7 +75,7 @@ class Index:
     def max_sentence_length(self):
         return max(self.sentance_length_array)
 
-    def __init__(self, dataset_path="dataset/nfL6.json", Word2Vec_path="word2vec", doclist_path="doclist.p"):
+    def __init__(self, dataset_path=join("dataset", "nfL6.json"), Word2Vec_path=join(SAVE_DIR, "word2vec"), doclist_path=join(SAVE_DIR, "doclist.p")):
         self.analyzer = EnglishAnalyzer()
         try:
             with open(doclist_path, 'rb') as fp:
@@ -90,7 +99,7 @@ class Index:
                 Index.Corpus_iterator(self), size=WORD2VEC_SIZE, min_count=1)
             self.model.save(Word2Vec_path)
         self.doc_train, self.doc_test = train_test_split(
-            self.doclist, test_size=0.2)
+            self.doclist, test_size=0.1)
 
     @lazy
     def normalize_vector_length(self):
@@ -105,6 +114,10 @@ class Index:
     
     def average_sentance_length(self):
         return floor(mean(self.sentance_length_array))
+    
+    @lazy
+    def test_size(self):
+        return sum(len(list(doc.tokenized_answers)) for doc in self.doc_test)
 
 
     def process_for_train(self, text: str):
@@ -127,12 +140,9 @@ class Index:
                     yield self.process_for_train(answer), self.process_for_train(doc.tokenized_question), self.process_for_train(random_answer())
 
         generator = doc_iterator()
-        while True:
+        for _ in range(self.test_size//batch_size):
             ret = list(zip(*islice(generator, batch_size)))
-            if ret:
-                yield np.array(ret)
-            else:
-                return
+            yield np.array(ret)
 
     def search(self, query: str):
         ...
