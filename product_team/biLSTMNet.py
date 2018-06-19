@@ -94,7 +94,10 @@ def train(restore=False):
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         if restore:
-            saver.restore(sess, MODEL_PATH)
+            try:
+                saver.restore(sess, MODEL_PATH)
+            except Exception:
+                pass
         for epoch_i in range(EPOCH_AMOUNT):
             for batch_num, (answer_batch, question_batch, random_answer_batch) in enumerate(generate_batch(BATCH_SIZE)):
                 _, loss_val = sess.run([optimizer, loss_op], feed_dict={
@@ -104,7 +107,7 @@ def train(restore=False):
             saver.save(sess, MODEL_PATH)
 
 
-def run(vector: np.ndarray):
+def run_multi(batch: np.ndarray):
     word2vec_size = WORD2VEC_SIZE
     max_sentence_length = index.normalize_vector_length
     answer_placeholder, question_placeholder, rand_answer_placeholder, question_outputs, loss_op = model(
@@ -112,4 +115,7 @@ def run(vector: np.ndarray):
     saver = tf.train.Saver()
     with tf.Session() as sess:
         saver.restore(sess, MODEL_PATH)
-        return sess.run(question_outputs, feed_dict={question_placeholder: [vector]})[0]
+        return sess.run(question_outputs, feed_dict={question_placeholder: batch})
+
+def run(vector: np.ndarray):
+    return run_multi([vector])[0]
