@@ -3,6 +3,7 @@ package com.ProductTeam;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,7 +17,7 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.store.FSDirectory;
 
 /**
  * Hello world!
@@ -71,8 +72,8 @@ public class App {
         }
     }
 
-    private static Directory newDirectory() {
-        return new RAMDirectory();
+    private static Directory newDirectory() throws IOException {
+        return FSDirectory.open(Paths.get("index/"));
     }
 
     private static Analyzer newAnalyzer() {
