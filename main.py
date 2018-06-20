@@ -2,7 +2,7 @@ import json
 
 import click
 
-from product_team import load_index, train, Searcher
+from product_team import load_index, train, Searcher,first_pass
 
 
 @click.group()
@@ -32,6 +32,9 @@ def search(queries_path: str):
     with open('results.json', 'w') as opened_file:
         json.dump(answers, opened_file)
 
+@cli.command('first_pass')
+def first_pass_cmd():
+    first_pass()
 
 if __name__ == '__main__':
     cli()

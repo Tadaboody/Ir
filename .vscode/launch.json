@@ -5,6 +5,27 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Search",
+            "type": "pythonExperimental",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "search",
+                "${workspaceFolder}}\\misc\\exampleTestQuestions.txt"
+            ]
+        },
+        {
+            "name": "First Pass",
+            "type": "pythonExperimental",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "first_pass"
+            ]
+        },
+        {
             "name": "Train",
             "type": "pythonExperimental",
             "request": "launch",

@@ -1,16 +1,14 @@
 import pickle
-from collections import namedtuple,deque
+from collections import namedtuple
 from functools import cmp_to_key
 from heapq import nlargest
-from itertools import islice
 from os.path import join
 
-import numpy as np
 from lazy import lazy
 from scipy.spatial.distance import cosine as cosine_distance
 from tqdm import tqdm
 
-from product_team import SAVE_DIR, Document, Index, run, run_multi
+from product_team import SAVE_DIR, Document, Index, run
 
 ModeledBestAnswer = namedtuple(
     'ModeledBestAnswer', ['index', 'answer', 'document'])
@@ -21,10 +19,16 @@ def cosine_similarity(a, b):
 
 
 class SearchableDoc():
-    def __init__(self, doc: Document, modeled_best_answer, modeled_nbest_answers):
+    def __init__(self, doc: Document, index: Index):
         self.doc = doc
-        self.modeled_nbest_answers = [ModeledBestAnswer(i, answer, doc) for (i, _), answer in zip(doc.nbest_answers, modeled_nbest_answers)]
-        self.modeled_best_answer = ModeledBestAnswer(-1, modeled_best_answer, self)
+        self.index = index
+        self.modeled_nbest_answers = [ModeledBestAnswer(i, self.process(
+            answer), self) for i, answer in self.doc.tokenized_nbest_answers]
+        self.modeled_best_answer = ModeledBestAnswer(
+            -1, self.process(doc.tokenized_best_answer), self)
+
+    def process(self, text: str):
+        return run(self.index.process_for_train(text))
 
     @property
     def all_modeled_answers(self):
@@ -32,7 +36,6 @@ class SearchableDoc():
         yield from self.modeled_nbest_answers
 
 
-    
 class Searcher:
     def __init__(self, index: Index):
         self.index = index
@@ -41,7 +44,8 @@ class Searcher:
             with open(self.doclist_path, 'rb') as fp:
                 self.doclist = pickle.load(fp)
         except FileNotFoundError:
-            self.gen_model_batch()
+            self.doclist = [SearchableDoc(doc, self.index)
+                            for doc in tqdm(self.index.doclist)]
             with open(self.doclist_path, 'wb') as fp:
                 pickle.dump(self.doclist, fp)
 
@@ -55,8 +59,6 @@ class Searcher:
         query = run(self.index.process_for_train(question))
 
         def doc_score(a: ModeledBestAnswer):
-            if not a.answer:
-                return float('-inf')
             return cosine_similarity(query, a.answer)
 
         best_mod_answers = nlargest(
@@ -65,32 +67,10 @@ class Searcher:
         def modeled_answer_to_answer(modeled_answer: ModeledBestAnswer):
             modeled_answer_doc = modeled_answer.document  # type:SearchableDoc
             ind = modeled_answer.index
-            if ind == -1:
+            if ind == "-1":
                 return modeled_answer_doc.doc.best_answer
             else:
                 return modeled_answer_doc.doc.nbest_answers[ind]
 
         return [{"answer": modeled_answer_to_answer(mod_answer), "score": doc_score(mod_answer)}
                 for mod_answer in best_mod_answers if doc_score(mod_answer) > SIM_THRESH]
-
-    def gen_model_batch(self):
-        self.doclist = []
-        print("startgen")
-        lengths = deque([len(list(doc.tokenized_answers))
-                   for doc in self.index.doclist])
-        all_tokenized_answers = np.array(
-            list(np.array(list(self.index.process_for_train(answer) for answer in doc.tokenized_answers))
-            for doc in self.index.doclist))
-        docs = deque(self.index.doclist)
-        for batch in np.array_split(all_tokenized_answers,100):
-            print("batch")
-            modeled_batch = deque(run_multi(batch))
-            current_length = lengths.popleft()
-            current_doc = docs.popleft() #type:Document
-            if current_doc.tokenized_best_answer:
-                best_answer = modeled_batch.popleft()
-                current_length -= 1
-            nbest_answers = [modeled_batch.popleft() for _ in range(current_length)]
-            self.doclist.append(SearchableDoc(
-                current_doc, best_answer, nbest_answers))
-

@@ -84,7 +84,7 @@ MODEL_PATH = join(SAVE_DIR, 'bilstmnet.ckpt')
 def train(restore=False):
     word2vec_size = WORD2VEC_SIZE
     EPOCH_AMOUNT = 20
-    BATCH_SIZE = index.test_size//80
+    BATCH_SIZE = index.test_size//150
     max_sentence_length = index.normalize_vector_length
     answer_placeholder, question_placeholder, rand_answer_placeholder, question_outputs, loss_op = model(
         word2vec_size, max_sentence_length)

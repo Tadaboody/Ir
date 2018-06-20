@@ -20,7 +20,7 @@ from product_team.utils import memorize
 from os.path import join
 from product_team import SAVE_DIR
 
-WORD2VEC_SIZE = 100
+WORD2VEC_SIZE = 20
 
 
 class Document:
@@ -38,10 +38,13 @@ class Document:
                                         for answer in self.nbest_answers]
         self.tokenized_nbest_answers = [
             (i, token) for i, token in enumerate(self.tokenized_nbest_answers) if token is not None]
+        self.nbest_answers = [self.nbest_answers[i]
+                              for i, _ in self.tokenized_nbest_answers]
 
     @property
     def tokenized_fields(self):
-        yield self.tokenized_question
+        if self.tokenized_question is not None:
+            yield self.tokenized_question
         yield from self.tokenized_answers
 
     @property
@@ -121,9 +124,11 @@ class Index:
 
     def process_for_train(self, text: str):
         tokens = self.analyzer.tokenize(text)
+        if not tokens:
+            return None
         vector = self.model[tokens]
         if len(vector) < self.normalize_vector_length:
-            vector = np.append(vector, [np.zeros(100)
+            vector = np.append(vector, [np.zeros(WORD2VEC_SIZE)
                                         for _ in range(self.normalize_vector_length - len(vector))], axis=0)
         vector = vector[:self.normalize_vector_length]
         return vector
